@@ -152,6 +152,7 @@
         setTimeout(updateCountdown, 1000); // 1 second interval
       } else {
         stopMeasurement();
+        document.getElementById('status').textContent = 'Countdown reached zero.';
       }
     }
   </script>
