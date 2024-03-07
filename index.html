@@ -22,14 +22,29 @@
       font-size: 24px;
       margin-top: 20px;
     }
+
+    #alarmText {
+      display: none;
+      color: red;
+      font-size: 18px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <div id="status">Waiting for accelerometer data...</div>
-  <div id="alarm">Motion detected! Alarm will sound in 30 seconds.</div>
+  <div id="alarm">Motion detected! Alarm will sound in <span id="countdown">30</span> seconds.</div>
+  <div id="alarmText">Alarm is sounding!</div>
+
+  <audio id="alarmSound" preload="auto" loop>
+    <source src="your-alarm-sound.mp3" type="audio/mp3">
+    <!-- Add additional source elements for other audio formats if needed -->
+    Your browser does not support the audio tag.
+  </audio>
 
   <script>
     let motionDetected = false;
+    let countdownSeconds = 30;
     let alarmTimeout;
 
     // Check if Accelerometer API is supported
@@ -48,12 +63,13 @@
     function checkMotion(sensor) {
       const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
 
-      if (acceleration > 10.0) {
+      if (acceleration > 50.0) {
         // Motion detected
         motionDetected = true;
         clearTimeout(alarmTimeout);
         document.getElementById('status').textContent = 'Motion detected!';
         document.getElementById('alarm').style.display = 'none';
+        stopAlarm();
       } else {
         // No motion
         motionDetected = false;
@@ -69,10 +85,40 @@
           // No motion for 30 seconds, trigger alarm
           document.getElementById('status').textContent = 'No motion detected for 30 seconds.';
           document.getElementById('alarm').style.display = 'block';
-          // Add code to trigger your alarm sound here
+          playAlarm();
         }
-      }, 30000); // 30 seconds
+      }, 1000); // 1 second interval for countdown
     }
+
+    function playAlarm() {
+      const alarmText = document.getElementById('alarmText');
+      alarmText.style.display = 'block';
+      const alarmSound = document.getElementById('alarmSound');
+      alarmSound.play();
+    }
+
+    function stopAlarm() {
+      const alarmText = document.getElementById('alarmText');
+      alarmText.style.display = 'none';
+      const alarmSound = document.getElementById('alarmSound');
+      alarmSound.pause();
+      alarmSound.currentTime = 0;
+    }
+
+    function updateCountdown() {
+      const countdownElement = document.getElementById('countdown');
+      countdownElement.textContent = countdownSeconds;
+      countdownSeconds--;
+
+      if (countdownSeconds < 0) {
+        stopAlarm();
+      } else {
+        setTimeout(updateCountdown, 1000); // 1 second interval
+      }
+    }
+
+    // Start countdown initially
+    updateCountdown();
   </script>
 </body>
 </html>
