@@ -29,12 +29,20 @@
       font-size: 18px;
       margin-top: 20px;
     }
+
+    #thresholdInput {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="status">Waiting for accelerometer data...</div>
   <div id="alarm">Motion detected! Alarm will sound in <span id="countdown">30</span> seconds.</div>
   <div id="alarmText">Alarm is sounding!</div>
+
+  <label for="thresholdInput">Threshold:</label>
+  <input type="number" id="thresholdInput" value="0.2" step="0.1" min="0" max="2">
+  <button onclick="updateThreshold()">Update Threshold</button>
 
   <audio id="alarmSound" preload="auto" loop>
     <source src="your-alarm-sound.mp3" type="audio/mp3">
@@ -46,6 +54,7 @@
     let motionDetected = false;
     let countdownSeconds = 30;
     let alarmTimeout;
+    let threshold = 0.2; // Initial threshold value
 
     // Check if Accelerometer API is supported
     if ('LinearAccelerationSensor' in window) {
@@ -63,7 +72,7 @@
     function checkMotion(sensor) {
       const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
 
-      if (acceleration > 5.0) {
+      if (acceleration > threshold) {
         // Motion detected
         motionDetected = true;
         clearTimeout(alarmTimeout);
@@ -103,6 +112,12 @@
       const alarmSound = document.getElementById('alarmSound');
       alarmSound.pause();
       alarmSound.currentTime = 0;
+    }
+
+    function updateThreshold() {
+      const thresholdInput = document.getElementById('thresholdInput');
+      threshold = parseFloat(thresholdInput.value);
+      document.getElementById('status').textContent = `Threshold updated to ${threshold}`;
     }
 
     function updateCountdown() {
