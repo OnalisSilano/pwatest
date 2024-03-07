@@ -63,7 +63,7 @@
     function checkMotion(sensor) {
       const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
 
-      if (acceleration > 50.0) {
+      if (acceleration > 5.0) {
         // Motion detected
         motionDetected = true;
         clearTimeout(alarmTimeout);
