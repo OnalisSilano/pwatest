@@ -70,6 +70,7 @@
         accelerometer.start();
         document.getElementById('status').textContent = 'Measurement started.';
         isMeasuring = true;
+        updateCountdown();
       } else {
         document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
       }
@@ -80,6 +81,7 @@
         accelerometer.stop();
         document.getElementById('status').textContent = 'Measurement stopped.';
         isMeasuring = false;
+        clearTimeout(alarmTimeout);
       }
     }
 
@@ -137,17 +139,14 @@
     function updateCountdown() {
       const countdownElement = document.getElementById('countdown');
       countdownElement.textContent = countdownSeconds;
-      countdownSeconds--;
 
-      if (countdownSeconds < 0) {
-        stopAlarm();
-      } else {
+      if (countdownSeconds > 0) {
+        countdownSeconds--;
         setTimeout(updateCountdown, 1000); // 1 second interval
+      } else {
+        stopMeasurement();
       }
     }
-
-    // Start countdown initially
-    updateCountdown();
   </script>
 </body>
 </html>
