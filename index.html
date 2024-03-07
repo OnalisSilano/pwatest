@@ -30,7 +30,8 @@
       margin-top: 20px;
     }
 
-    #thresholdInput {
+    #thresholdInput,
+    #countdownInput {
       margin-top: 10px;
     }
   </style>
@@ -42,7 +43,12 @@
 
   <label for="thresholdInput">Threshold:</label>
   <input type="number" id="thresholdInput" value="0.2" step="0.1" min="0" max="2">
+  
+  <label for="countdownInput">Countdown (10-60 seconds):</label>
+  <input type="number" id="countdownInput" value="30" step="1" min="10" max="60">
+
   <button onclick="updateThreshold()">Update Threshold</button>
+  <button onclick="updateCountdown()">Update Countdown</button>
 
   <button onclick="startMeasurement()">Start Measurement</button>
   <button onclick="stopMeasurement()">Stop Measurement</button>
@@ -107,8 +113,8 @@
       clearTimeout(alarmTimeout);
       alarmTimeout = setTimeout(() => {
         if (!motionDetected) {
-          // No motion for 30 seconds, trigger alarm
-          document.getElementById('status').textContent = 'No motion detected for 30 seconds.';
+          // No motion for specified seconds, trigger alarm
+          document.getElementById('status').textContent = `No motion detected for ${countdownSeconds} seconds.`;
           document.getElementById('alarm').style.display = 'block';
           playAlarm();
         }
@@ -138,6 +144,7 @@
 
     function updateCountdown() {
       const countdownElement = document.getElementById('countdown');
+      countdownSeconds = parseInt(document.getElementById('countdownInput').value);
       countdownElement.textContent = countdownSeconds;
 
       if (countdownSeconds > 0) {
