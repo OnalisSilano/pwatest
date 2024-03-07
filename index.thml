@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accelerometer PWA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #status {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    #alarm {
+      display: none;
+      color: red;
+      font-size: 24px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">Waiting for accelerometer data...</div>
+  <div id="alarm">Motion detected! Alarm will sound in 30 seconds.</div>
+
+  <script>
+    let motionDetected = false;
+    let alarmTimeout;
+
+    // Check if Accelerometer API is supported
+    if ('LinearAccelerationSensor' in window) {
+      const accelerometer = new LinearAccelerationSensor({ frequency: 60 });
+
+      accelerometer.addEventListener('reading', () => {
+        checkMotion(accelerometer);
+      });
+
+      accelerometer.start();
+    } else {
+      document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
+    }
+
+    function checkMotion(sensor) {
+      const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
+
+      if (acceleration > 0.2) {
+        // Motion detected
+        motionDetected = true;
+        clearTimeout(alarmTimeout);
+        document.getElementById('status').textContent = 'Motion detected!';
+        document.getElementById('alarm').style.display = 'none';
+      } else {
+        // No motion
+        motionDetected = false;
+        document.getElementById('status').textContent = 'No motion detected.';
+        setAlarmTimeout();
+      }
+    }
+
+    function setAlarmTimeout() {
+      clearTimeout(alarmTimeout);
+      alarmTimeout = setTimeout(() => {
+        if (!motionDetected) {
+          // No motion for 30 seconds, trigger alarm
+          document.getElementById('status').textContent = 'No motion detected for 30 seconds.';
+          document.getElementById('alarm').style.display = 'block';
+          // Add code to trigger your alarm sound here
+        }
+      }, 30000); // 30 seconds
+    }
+  </script>
+</body>
+</html>
