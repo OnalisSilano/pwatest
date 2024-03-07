@@ -29,29 +29,12 @@
       font-size: 18px;
       margin-top: 20px;
     }
-
-    #thresholdInput,
-    #countdownInput {
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
   <div id="status">Waiting for accelerometer data...</div>
-  <div id="alarm">Motion detected! Alarm will sound in <span id="countdown">30</span> seconds.</div>
+  <div id="alarm">Motion detected! Alarm will sound in 30 seconds.</div>
   <div id="alarmText">Alarm is sounding!</div>
-
-  <label for="thresholdInput">Threshold:</label>
-  <input type="number" id="thresholdInput" value="0.2" step="0.1" min="0" max="2">
-  
-  <label for="countdownInput">Countdown (10-60 seconds):</label>
-  <input type="number" id="countdownInput" value="30" step="1" min="10" max="60">
-
-  <button onclick="updateThreshold()">Update Threshold</button>
-  <button onclick="updateCountdown()">Update Countdown</button>
-
-  <button onclick="startMeasurement()">Start Measurement</button>
-  <button onclick="stopMeasurement()">Stop Measurement</button>
 
   <audio id="alarmSound" preload="auto" loop>
     <source src="your-alarm-sound.mp3" type="audio/mp3">
@@ -61,40 +44,25 @@
 
   <script>
     let motionDetected = false;
-    let countdownSeconds = 30;
     let alarmTimeout;
-    let threshold = 0.2; // Initial threshold value
-    let isMeasuring = false;
-    let accelerometer;
 
-    function startMeasurement() {
-      if ('LinearAccelerationSensor' in window) {
-        accelerometer = new LinearAccelerationSensor({ frequency: 60 });
-        accelerometer.addEventListener('reading', () => {
-          checkMotion(accelerometer);
-        });
-        accelerometer.start();
-        document.getElementById('status').textContent = 'Measurement started.';
-        isMeasuring = true;
-        updateCountdown();
-      } else {
-        document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
-      }
-    }
+    // Check if Accelerometer API is supported
+    if ('LinearAccelerationSensor' in window) {
+      const accelerometer = new LinearAccelerationSensor({ frequency: 60 });
 
-    function stopMeasurement() {
-      if (isMeasuring && accelerometer) {
-        accelerometer.stop();
-        document.getElementById('status').textContent = 'Measurement stopped.';
-        isMeasuring = false;
-        clearTimeout(alarmTimeout);
-      }
+      accelerometer.addEventListener('reading', () => {
+        checkMotion(accelerometer);
+      });
+
+      accelerometer.start();
+    } else {
+      document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
     }
 
     function checkMotion(sensor) {
       const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
 
-      if (acceleration > threshold) {
+      if (acceleration > 0.2) {
         // Motion detected
         motionDetected = true;
         clearTimeout(alarmTimeout);
@@ -113,12 +81,12 @@
       clearTimeout(alarmTimeout);
       alarmTimeout = setTimeout(() => {
         if (!motionDetected) {
-          // No motion for specified seconds, trigger alarm
-          document.getElementById('status').textContent = `No motion detected for ${countdownSeconds} seconds.`;
+          // No motion for 30 seconds, trigger alarm
+          document.getElementById('status').textContent = 'No motion detected for 30 seconds.';
           document.getElementById('alarm').style.display = 'block';
           playAlarm();
         }
-      }, 1000); // 1 second interval for countdown
+      }, 30000); // 30 seconds
     }
 
     function playAlarm() {
@@ -134,26 +102,6 @@
       const alarmSound = document.getElementById('alarmSound');
       alarmSound.pause();
       alarmSound.currentTime = 0;
-    }
-
-    function updateThreshold() {
-      const thresholdInput = document.getElementById('thresholdInput');
-      threshold = parseFloat(thresholdInput.value);
-      document.getElementById('status').textContent = `Threshold updated to ${threshold}`;
-    }
-
-    function updateCountdown() {
-      const countdownElement = document.getElementById('countdown');
-      countdownSeconds = parseInt(document.getElementById('countdownInput').value);
-      countdownElement.textContent = countdownSeconds;
-
-      if (countdownSeconds > 0) {
-        countdownSeconds--;
-        setTimeout(updateCountdown, 1000); // 1 second interval
-      } else {
-        stopMeasurement();
-        document.getElementById('status').textContent = 'Countdown reached zero.';
-      }
     }
   </script>
 </body>
