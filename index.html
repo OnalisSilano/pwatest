@@ -37,7 +37,7 @@
   <div id="alarmText">Alarm is sounding!</div>
 
   <audio id="alarmSound" preload="auto" loop>
-    <source src="sound/pacman_dies.mp3" type="audio/mp3">
+    <source src="https://github.com/OnalisSilano/pwatest/blob/main/sound/pacman_dies.mp3" type="audio/mp3">
     <!-- Add additional source elements for other audio formats if needed -->
     Your browser does not support the audio tag.
   </audio>
@@ -62,7 +62,7 @@
     function checkMotion(sensor) {
       const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
 
-      if (acceleration > 10.0) {
+      if (acceleration > 0.2) {
         // Motion detected
         motionDetected = true;
         clearTimeout(alarmTimeout);
