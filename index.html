@@ -44,6 +44,9 @@
   <input type="number" id="thresholdInput" value="0.2" step="0.1" min="0" max="2">
   <button onclick="updateThreshold()">Update Threshold</button>
 
+  <button onclick="startMeasurement()">Start Measurement</button>
+  <button onclick="stopMeasurement()">Stop Measurement</button>
+
   <audio id="alarmSound" preload="auto" loop>
     <source src="your-alarm-sound.mp3" type="audio/mp3">
     <!-- Add additional source elements for other audio formats if needed -->
@@ -55,18 +58,29 @@
     let countdownSeconds = 30;
     let alarmTimeout;
     let threshold = 0.2; // Initial threshold value
+    let isMeasuring = false;
+    let accelerometer;
 
-    // Check if Accelerometer API is supported
-    if ('LinearAccelerationSensor' in window) {
-      const accelerometer = new LinearAccelerationSensor({ frequency: 60 });
+    function startMeasurement() {
+      if ('LinearAccelerationSensor' in window) {
+        accelerometer = new LinearAccelerationSensor({ frequency: 60 });
+        accelerometer.addEventListener('reading', () => {
+          checkMotion(accelerometer);
+        });
+        accelerometer.start();
+        document.getElementById('status').textContent = 'Measurement started.';
+        isMeasuring = true;
+      } else {
+        document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
+      }
+    }
 
-      accelerometer.addEventListener('reading', () => {
-        checkMotion(accelerometer);
-      });
-
-      accelerometer.start();
-    } else {
-      document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
+    function stopMeasurement() {
+      if (isMeasuring && accelerometer) {
+        accelerometer.stop();
+        document.getElementById('status').textContent = 'Measurement stopped.';
+        isMeasuring = false;
+      }
     }
 
     function checkMotion(sensor) {
