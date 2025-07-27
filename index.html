@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accelerometer PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="pwatest">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,7 +42,7 @@
   <div id="alarmText">Alarm is sounding!</div>
 
   <audio id="alarmSound" preload="auto" loop>
-    <source src="https://github.com/OnalisSilano/pwatest/blob/main/sound/pacman_dies.mp3" type="audio/mp3">
+    <source src="sound/pacman_dies.mp3" type="audio/mp3">
     <!-- Add additional source elements for other audio formats if needed -->
     Your browser does not support the audio tag.
   </audio>
@@ -102,6 +107,16 @@
       const alarmSound = document.getElementById('alarmSound');
       alarmSound.pause();
       alarmSound.currentTime = 0;
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(function(registration) {
+          console.log('Service Worker registered with scope:', registration.scope);
+        }).catch(function(error) {
+          console.log('Service Worker registration failed:', error);
+        });
     }
   </script>
 </body>
