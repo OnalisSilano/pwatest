@@ -38,6 +38,7 @@
 </head>
 <body>
   <div id="status">Waiting for accelerometer data...</div>
+  <button id="request-permission-button">Request Motion Access</button>
   <div id="alarm">Motion detected! Alarm will sound in 30 seconds.</div>
   <div id="alarmText">Alarm is sounding!</div>
 
@@ -114,7 +115,8 @@
       alarmSound.currentTime = 0;
     }
 
-    window.addEventListener('load', requestMotionAccess);
+    const requestPermissionButton = document.getElementById('request-permission-button');
+    requestPermissionButton.addEventListener('click', requestMotionAccess);
   </script>
   <script>
     if ('serviceWorker' in navigator) {
