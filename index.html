@@ -51,23 +51,28 @@
     let motionDetected = false;
     let alarmTimeout;
 
-    // Check if Accelerometer API is supported
-    if ('LinearAccelerationSensor' in window) {
-      const accelerometer = new LinearAccelerationSensor({ frequency: 60 });
-
-      accelerometer.addEventListener('reading', () => {
-        checkMotion(accelerometer);
-      });
-
-      accelerometer.start();
-    } else {
-      document.getElementById('status').textContent = 'Accelerometer not supported on this device.';
+    function requestMotionAccess() {
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('devicemotion', handleMotionEvent);
+            } else {
+              document.getElementById('status').textContent = 'Permission for DeviceMotionEvent not granted.';
+            }
+          })
+          .catch(console.error);
+      } else {
+        // handle regular non iOS 13+ devices.
+        window.addEventListener('devicemotion', handleMotionEvent);
+      }
     }
 
-    function checkMotion(sensor) {
-      const acceleration = Math.hypot(sensor.x, sensor.y, sensor.z);
+    function handleMotionEvent(event) {
+      const acceleration = event.accelerationIncludingGravity;
+      const accelerationValue = Math.hypot(acceleration.x, acceleration.y, acceleration.z);
 
-      if (acceleration > 0.2) {
+      if (accelerationValue > 1) {
         // Motion detected
         motionDetected = true;
         clearTimeout(alarmTimeout);
@@ -108,6 +113,8 @@
       alarmSound.pause();
       alarmSound.currentTime = 0;
     }
+
+    window.addEventListener('load', requestMotionAccess);
   </script>
   <script>
     if ('serviceWorker' in navigator) {
