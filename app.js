@@ -38,6 +38,9 @@ function handleMotionEvent(event) {
         stopAlarm();
     }
     resetAlarmTimer();
+  } else {
+    // No motion is detected
+    document.getElementById('status').textContent = 'Monitoring for motion...';
   }
 }
 
