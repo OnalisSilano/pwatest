@@ -10,6 +10,20 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="pwatest">
   <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="status">Waiting for accelerometer data...</div>
+  <div id="countdown"></div>
+  <button id="request-permission-button">Request Motion Access</button>
+  <div id="alarm">Motion detected! Alarm will sound in 30 seconds.</div>
+  <div id="alarmText">Alarm is sounding!</div>
+
+  <audio id="alarmSound" preload="auto" loop>
+    <source src="sound/pacman_dies.mp3" type="audio/mp3">
+    <!-- Add additional source elements for other audio formats if needed -->
+    Your browser does not support the audio tag.
+  </audio>
+
   <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,4 +1,6 @@
+
 let alarmTimeout;
+let countdownInterval;
 const threshold = 1; // Motion detection threshold
 const alarmDelay = 30000; // 30 seconds
 
@@ -40,8 +42,20 @@ function handleMotionEvent(event) {
 }
 
 function resetAlarmTimer() {
-  // Clear the existing timer
+  // Clear the existing timer and countdown
   clearTimeout(alarmTimeout);
+  clearInterval(countdownInterval);
+
+  let remainingTime = alarmDelay;
+
+  // Update the countdown display every 10ms
+  countdownInterval = setInterval(() => {
+    remainingTime -= 10;
+    document.getElementById('countdown').textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
+    if (remainingTime <= 0) {
+      clearInterval(countdownInterval);
+    }
+  }, 10);
 
   // Set a new timer
   alarmTimeout = setTimeout(() => {
