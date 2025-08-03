@@ -1,24 +1,31 @@
+
 let alarmTimeout;
 let countdownInterval;
 const threshold = 1.2; // Motion detection threshold
 const alarmDelay = 30000; // 30 seconds
 
+// Element references
+const statusEl = document.getElementById('status');
+const countdownEl = document.getElementById('countdown');
+const accelerationValueEl = document.getElementById('acceleration-value');
+const alarmEl = document.getElementById('alarm');
+const alarmTextEl = document.getElementById('alarmText');
+const alarmSound = document.getElementById('alarmSound');
+const requestPermissionButton = document.getElementById('request-permission-button');
+const stopAlarmButton = document.getElementById('stop-alarm-button');
+
 function requestMotionAccess() {
   console.log("Requesting motion access...");
-  const alarmSound = document.getElementById('alarmSound');
 
   // Pre-load the sound and try to unlock it on the first user gesture.
   alarmSound.load();
   const playPromise = alarmSound.play();
   if (playPromise !== undefined) {
     playPromise.then(_ => {
-      // Automatic playback started!
-      // Stop the sound immediately.
       alarmSound.pause();
       alarmSound.currentTime = 0;
       console.log("Audio playback unlocked.");
     }).catch(error => {
-      // Auto-play was prevented
       console.log("Audio playback unlock failed. Will try again on alarm.");
     });
   }
@@ -29,21 +36,22 @@ function requestMotionAccess() {
         if (permissionState === 'granted') {
           console.log("Motion access granted.");
           window.addEventListener('devicemotion', handleMotionEvent);
-          document.getElementById('status').textContent = 'Monitoring for motion...';
+          statusEl.textContent = 'Monitoring for motion...';
           resetAlarmTimer();
         } else {
           console.log("Motion access denied.");
-          document.getElementById('status').textContent = 'Permission for DeviceMotionEvent not granted.';
+          statusEl.textContent = 'Permission for DeviceMotionEvent not granted.';
         }
       })
       .catch(console.error);
   } else {
-    // For non-iOS 13+ devices
     console.log("Using standard devicemotion event.");
     window.addEventListener('devicemotion', handleMotionEvent);
-    document.getElementById('status').textContent = 'Monitoring for motion...';
+    statusEl.textContent = 'Monitoring for motion...';
     resetAlarmTimer();
   }
+  // Hide the request button after it's clicked
+  requestPermissionButton.style.display = 'none';
 }
 
 function handleMotionEvent(event) {
@@ -51,20 +59,19 @@ function handleMotionEvent(event) {
   if (!acceleration) return;
 
   const accelerationValue = Math.hypot(acceleration.x, acceleration.y, acceleration.z);
-  document.getElementById('acceleration-value').textContent = `Acceleration: ${accelerationValue.toFixed(5)}`;
+  accelerationValueEl.textContent = `Acceleration: ${accelerationValue.toFixed(5)}`;
 
   if (accelerationValue > threshold) {
-    if (document.getElementById('status').textContent !== 'Motion detected!') {
-        document.getElementById('status').textContent = 'Motion detected!';
+    if (statusEl.textContent !== 'Motion detected!') {
+        statusEl.textContent = 'Motion detected!';
     }
-    if (document.getElementById('alarm').style.display === 'block') {
-        document.getElementById('alarm').style.display = 'none';
-        stopAlarm();
+    if (alarmEl.style.display === 'block') {
+        stopAlarm(); // Stop the alarm if motion is detected
     }
     resetAlarmTimer();
   } else {
-    if (document.getElementById('status').textContent !== 'Monitoring for motion...') {
-        document.getElementById('status').textContent = 'Monitoring for motion...';
+    if (statusEl.textContent !== 'Monitoring for motion...') {
+        statusEl.textContent = 'Monitoring for motion...';
     }
   }
 }
@@ -75,33 +82,31 @@ function resetAlarmTimer() {
   console.log("Alarm timer reset.");
 
   let remainingTime = alarmDelay;
-  document.getElementById('countdown').textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
+  countdownEl.textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
 
   countdownInterval = setInterval(() => {
     remainingTime -= 10;
     if (remainingTime >= 0) {
-        document.getElementById('countdown').textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
+        countdownEl.textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
     }
   }, 10);
 
   alarmTimeout = setTimeout(() => {
     console.log("Timer expired. Attempting to play alarm.");
     clearInterval(countdownInterval);
-    document.getElementById('status').textContent = `No motion for ${alarmDelay / 1000} seconds.`;
-    document.getElementById('alarm').style.display = 'block';
+    statusEl.textContent = `No motion for ${alarmDelay / 1000} seconds.`;
     playAlarm();
   }, alarmDelay);
 }
 
 function playAlarm() {
   console.log("playAlarm() called.");
-  const alarmText = document.getElementById('alarmText');
-  alarmText.style.display = 'block';
-  const alarmSound = document.getElementById('alarmSound');
-  alarmSound.currentTime = 0; // Reset time to the beginning
+  alarmEl.style.display = 'block';
+  alarmTextEl.style.display = 'block';
+  stopAlarmButton.style.display = 'block'; // Show the stop button
+  alarmSound.currentTime = 0;
 
   const playPromise = alarmSound.play();
-
   if (playPromise !== undefined) {
     playPromise.then(_ => {
       console.log("Alarm sound playing successfully.");
@@ -114,16 +119,20 @@ function playAlarm() {
 
 function stopAlarm() {
   console.log("stopAlarm() called.");
-  const alarmText = document.getElementById('alarmText');
-  alarmText.style.display = 'none';
-  const alarmSound = document.getElementById('alarmSound');
+  alarmEl.style.display = 'none';
+  alarmTextEl.style.display = 'none';
+  stopAlarmButton.style.display = 'none'; // Hide the stop button
   alarmSound.pause();
   alarmSound.currentTime = 0;
+  // After stopping the alarm, go back to monitoring
+  resetAlarmTimer();
 }
 
-const requestPermissionButton = document.getElementById('request-permission-button');
+// Event Listeners
 requestPermissionButton.addEventListener('click', requestMotionAccess);
+stopAlarmButton.addEventListener('click', stopAlarm);
 
+// Service Worker Registration
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js')
     .then(function(registration) {
