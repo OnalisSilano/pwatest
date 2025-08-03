@@ -1,7 +1,7 @@
 
 let alarmTimeout;
 let countdownInterval;
-const threshold = 120; // Motion detection threshold
+const threshold = 1.2; // Motion detection threshold
 const alarmDelay = 30000; // 30 seconds
 
 function requestMotionAccess() {
@@ -28,6 +28,9 @@ function requestMotionAccess() {
 function handleMotionEvent(event) {
   const acceleration = event.accelerationIncludingGravity;
   const accelerationValue = Math.hypot(acceleration.x, acceleration.y, acceleration.z);
+
+  // Display the current acceleration value for debugging
+  document.getElementById('acceleration-value').textContent = `Acceleration: ${accelerationValue.toFixed(5)}`;
 
   // If motion is detected, reset the alarm timer
   if (accelerationValue > threshold) {
