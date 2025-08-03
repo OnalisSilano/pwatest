@@ -1,7 +1,6 @@
-
 let alarmTimeout;
 let countdownInterval;
-const threshold = 12; // Motion detection threshold
+const threshold = 1.2; // Motion detection threshold
 const alarmDelay = 30000; // 30 seconds
 
 // Element references
@@ -62,24 +61,25 @@ function handleMotionEvent(event) {
   accelerationValueEl.textContent = `Acceleration: ${accelerationValue.toFixed(5)}`;
 
   if (accelerationValue > threshold) {
-    if (statusEl.textContent !== 'Motion detected!') {
-        statusEl.textContent = 'Motion detected!';
-    }
-    if (alarmEl.style.display === 'block') {
-        stopAlarm(); // Stop the alarm if motion is detected
-    }
+    // Motion detected, reset the timer
     resetAlarmTimer();
   } else {
-    if (statusEl.textContent !== 'Monitoring for motion...') {
+    // No motion is detected
+    if (statusEl.textContent !== 'Monitoring for motion...' && alarmEl.style.display !== 'block') {
         statusEl.textContent = 'Monitoring for motion...';
     }
   }
 }
 
 function resetAlarmTimer() {
+  // Stop any currently playing alarm and hide alarm elements
+  stopAlarm(false); // Pass false to prevent a recursive loop
+
   clearTimeout(alarmTimeout);
   clearInterval(countdownInterval);
   console.log("Alarm timer reset.");
+
+  statusEl.textContent = 'Monitoring for motion...';
 
   let remainingTime = alarmDelay;
   countdownEl.textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
@@ -117,20 +117,23 @@ function playAlarm() {
   }
 }
 
-function stopAlarm() {
-  console.log("stopAlarm() called.");
+function stopAlarm(shouldResetTimer = true) {
+  console.log(`stopAlarm() called. Reset timer: ${shouldResetTimer}`);
   alarmEl.style.display = 'none';
   alarmTextEl.style.display = 'none';
   stopAlarmButton.style.display = 'none'; // Hide the stop button
   alarmSound.pause();
   alarmSound.currentTime = 0;
-  // After stopping the alarm, go back to monitoring
-  resetAlarmTimer();
+
+  if (shouldResetTimer) {
+    // After stopping the alarm, go back to monitoring
+    resetAlarmTimer();
+  }
 }
 
 // Event Listeners
 requestPermissionButton.addEventListener('click', requestMotionAccess);
-stopAlarmButton.addEventListener('click', stopAlarm);
+stopAlarmButton.addEventListener('click', () => stopAlarm(true));
 
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
