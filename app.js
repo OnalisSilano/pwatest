@@ -1,6 +1,6 @@
-
-let motionDetected = false;
 let alarmTimeout;
+const threshold = 1; // Motion detection threshold
+const alarmDelay = 30000; // 30 seconds
 
 function requestMotionAccess() {
   if (typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -8,14 +8,18 @@ function requestMotionAccess() {
       .then(permissionState => {
         if (permissionState === 'granted') {
           window.addEventListener('devicemotion', handleMotionEvent);
+          document.getElementById('status').textContent = 'Monitoring for motion...';
+          resetAlarmTimer(); // Start the timer as soon as monitoring begins
         } else {
           document.getElementById('status').textContent = 'Permission for DeviceMotionEvent not granted.';
         }
       })
       .catch(console.error);
   } else {
-    // handle regular non iOS 13+ devices.
+    // For non-iOS 13+ devices
     window.addEventListener('devicemotion', handleMotionEvent);
+    document.getElementById('status').textContent = 'Monitoring for motion...';
+    resetAlarmTimer(); // Start the timer as soon as monitoring begins
   }
 }
 
@@ -23,31 +27,29 @@ function handleMotionEvent(event) {
   const acceleration = event.accelerationIncludingGravity;
   const accelerationValue = Math.hypot(acceleration.x, acceleration.y, acceleration.z);
 
-  if (accelerationValue > 1) {
-    // Motion detected
-    motionDetected = true;
-    clearTimeout(alarmTimeout);
+  // If motion is detected, reset the alarm timer
+  if (accelerationValue > threshold) {
     document.getElementById('status').textContent = 'Motion detected!';
-    document.getElementById('alarm').style.display = 'none';
-    stopAlarm();
-  } else {
-    // No motion
-    motionDetected = false;
-    document.getElementById('status').textContent = 'No motion detected.';
-    setAlarmTimeout();
+    // If the alarm is ringing, stop it
+    if (document.getElementById('alarm').style.display === 'block') {
+        document.getElementById('alarm').style.display = 'none';
+        stopAlarm();
+    }
+    resetAlarmTimer();
   }
 }
 
-function setAlarmTimeout() {
+function resetAlarmTimer() {
+  // Clear the existing timer
   clearTimeout(alarmTimeout);
+
+  // Set a new timer
   alarmTimeout = setTimeout(() => {
-    if (!motionDetected) {
-      // No motion for 30 seconds, trigger alarm
-      document.getElementById('status').textContent = 'No motion detected for 30 seconds.';
-      document.getElementById('alarm').style.display = 'block';
-      playAlarm();
-    }
-  }, 30000); // 30 seconds
+    // If the timer fires, it means there has been no motion for the specified delay
+    document.getElementById('status').textContent = `No motion for ${alarmDelay / 1000} seconds.`;
+    document.getElementById('alarm').style.display = 'block';
+    playAlarm();
+  }, alarmDelay);
 }
 
 function playAlarm() {
