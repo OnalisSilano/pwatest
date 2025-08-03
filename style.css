@@ -1,0 +1,25 @@
+
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+#status {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+#alarm {
+  display: none;
+  color: red;
+  font-size: 24px;
+  margin-top: 20px;
+}
+
+#alarmText {
+  display: none;
+  color: red;
+  font-size: 18px;
+  margin-top: 20px;
+}
