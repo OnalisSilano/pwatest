@@ -1,71 +1,92 @@
-
 let alarmTimeout;
 let countdownInterval;
-const threshold = 12; // Motion detection threshold
+const threshold = 1.2; // Motion detection threshold
 const alarmDelay = 30000; // 30 seconds
 
 function requestMotionAccess() {
+  console.log("Requesting motion access...");
+  const alarmSound = document.getElementById('alarmSound');
+
+  // Pre-load the sound and try to unlock it on the first user gesture.
+  alarmSound.load();
+  const playPromise = alarmSound.play();
+  if (playPromise !== undefined) {
+    playPromise.then(_ => {
+      // Automatic playback started!
+      // Stop the sound immediately.
+      alarmSound.pause();
+      alarmSound.currentTime = 0;
+      console.log("Audio playback unlocked.");
+    }).catch(error => {
+      // Auto-play was prevented
+      console.log("Audio playback unlock failed. Will try again on alarm.");
+    });
+  }
+
   if (typeof DeviceMotionEvent.requestPermission === 'function') {
     DeviceMotionEvent.requestPermission()
       .then(permissionState => {
         if (permissionState === 'granted') {
+          console.log("Motion access granted.");
           window.addEventListener('devicemotion', handleMotionEvent);
           document.getElementById('status').textContent = 'Monitoring for motion...';
-          resetAlarmTimer(); // Start the timer as soon as monitoring begins
+          resetAlarmTimer();
         } else {
+          console.log("Motion access denied.");
           document.getElementById('status').textContent = 'Permission for DeviceMotionEvent not granted.';
         }
       })
       .catch(console.error);
   } else {
     // For non-iOS 13+ devices
+    console.log("Using standard devicemotion event.");
     window.addEventListener('devicemotion', handleMotionEvent);
     document.getElementById('status').textContent = 'Monitoring for motion...';
-    resetAlarmTimer(); // Start the timer as soon as monitoring begins
+    resetAlarmTimer();
   }
 }
 
 function handleMotionEvent(event) {
   const acceleration = event.accelerationIncludingGravity;
-  const accelerationValue = Math.hypot(acceleration.x, acceleration.y, acceleration.z);
+  if (!acceleration) return;
 
-  // Display the current acceleration value for debugging
+  const accelerationValue = Math.hypot(acceleration.x, acceleration.y, acceleration.z);
   document.getElementById('acceleration-value').textContent = `Acceleration: ${accelerationValue.toFixed(5)}`;
 
-  // If motion is detected, reset the alarm timer
   if (accelerationValue > threshold) {
-    document.getElementById('status').textContent = 'Motion detected!';
-    // If the alarm is ringing, stop it
+    if (document.getElementById('status').textContent !== 'Motion detected!') {
+        document.getElementById('status').textContent = 'Motion detected!';
+    }
     if (document.getElementById('alarm').style.display === 'block') {
         document.getElementById('alarm').style.display = 'none';
         stopAlarm();
     }
     resetAlarmTimer();
   } else {
-    // No motion is detected
-    document.getElementById('status').textContent = 'Monitoring for motion...';
+    if (document.getElementById('status').textContent !== 'Monitoring for motion...') {
+        document.getElementById('status').textContent = 'Monitoring for motion...';
+    }
   }
 }
 
 function resetAlarmTimer() {
-  // Clear the existing timer and countdown
   clearTimeout(alarmTimeout);
   clearInterval(countdownInterval);
+  console.log("Alarm timer reset.");
 
   let remainingTime = alarmDelay;
+  document.getElementById('countdown').textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
 
-  // Update the countdown display every 10ms
   countdownInterval = setInterval(() => {
     remainingTime -= 10;
-    document.getElementById('countdown').textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
-    if (remainingTime <= 0) {
-      clearInterval(countdownInterval);
+    if (remainingTime >= 0) {
+        document.getElementById('countdown').textContent = `Time until alarm: ${(remainingTime / 1000).toFixed(3)}s`;
     }
   }, 10);
 
-  // Set a new timer
   alarmTimeout = setTimeout(() => {
-    // If the timer fires, it means there has been no motion for the specified delay
+    console.log("Timer expired. Attempting to play alarm.");
+    clearInterval(countdownInterval);
     document.getElementById('status').textContent = `No motion for ${alarmDelay / 1000} seconds.`;
     document.getElementById('alarm').style.display = 'block';
     playAlarm();
@@ -73,13 +94,26 @@ function resetAlarmTimer() {
 }
 
 function playAlarm() {
+  console.log("playAlarm() called.");
   const alarmText = document.getElementById('alarmText');
   alarmText.style.display = 'block';
   const alarmSound = document.getElementById('alarmSound');
-  alarmSound.play();
+  alarmSound.currentTime = 0; // Reset time to the beginning
+
+  const playPromise = alarmSound.play();
+
+  if (playPromise !== undefined) {
+    playPromise.then(_ => {
+      console.log("Alarm sound playing successfully.");
+    }).catch(error => {
+      console.error("Failed to play alarm sound:", error);
+      alert("Could not play alarm sound. Please interact with the page again.");
+    });
+  }
 }
 
 function stopAlarm() {
+  console.log("stopAlarm() called.");
   const alarmText = document.getElementById('alarmText');
   alarmText.style.display = 'none';
   const alarmSound = document.getElementById('alarmSound');
