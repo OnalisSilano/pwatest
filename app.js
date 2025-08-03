@@ -1,7 +1,7 @@
 
 let alarmTimeout;
 let countdownInterval;
-const threshold = 12; // Motion detection threshold
+const threshold = 120; // Motion detection threshold
 const alarmDelay = 30000; // 30 seconds
 
 function requestMotionAccess() {
